@@ -242,7 +242,7 @@ class _EpubViewerState extends State<EpubViewer> {
 
   @override
   void dispose() {
-    webViewController?.dispose();
+    //webViewController?.dispose();
     super.dispose();
   }
 }

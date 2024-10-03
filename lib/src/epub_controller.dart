@@ -62,8 +62,8 @@ class EpubController {
     checkEpubLoaded();
     final result =
         await webViewController!.evaluateJavascript(source: 'getChapters()');
-    chapters =
-        List<EpubChapter>.from(result.map((e) => EpubChapter.fromJson(e)));
+    chapters = List<EpubChapter>.from(
+        result.map((e) => EpubChapter.fromJson(e.cast<String, dynamic>())));
     return chapters;
   }
 
