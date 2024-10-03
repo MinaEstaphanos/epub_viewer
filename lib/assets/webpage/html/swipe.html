@@ -249,14 +249,6 @@
       ).then(results => Promise.resolve([].concat.apply([], results)));
     };
 
-    function setFontSize(fontSize){
-      rendition.themes.default({
-        p: {
-        // "margin": '10px',
-        "font-size":`${fontSize}px`
-      }
-      });
-    }
 
     function setSpread(spread){
       rendition.spread(spread);
@@ -274,7 +266,7 @@
       rendition.themes.default({
         p: {
         // "margin": '10px',
-        "font-size":`${fontSize}px`
+        "font-size":`${fontSize}px !important`
         }
       });
     }
