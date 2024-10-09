@@ -280,3 +280,6 @@ svg {
   stroke: #777;
   fill: #777;
 }
+.epub-container {
+overflow-anchor: none !important;
+}
