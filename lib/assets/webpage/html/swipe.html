@@ -266,16 +266,9 @@
       rendition.manager(manager);
     }
 
-    function setFontSize(fontSize){
-      rendition.themes.fontSize('200%');
+    function setFontSize(fontSizePercentage){
+      rendition.themes.fontSize('${fontSizePercentage}%');
       rendition.reportLocation();
-      return;
-      rendition.themes.default({
-        p: {
-        // "margin": '10px',
-        "font-size":`${fontSize}px !important`
-        }
-      });
     }
 
     //get current page text
