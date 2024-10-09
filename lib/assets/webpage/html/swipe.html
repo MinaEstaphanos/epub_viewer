@@ -267,6 +267,8 @@
     }
 
     function setFontSize(fontSizePercentage){
+    var args = [fontSizePercentage];
+    window.flutter_inappwebview.callHandler('log', ...args);
       rendition.themes.fontSize('${fontSizePercentage}%');
       rendition.reportLocation();
     }
