@@ -220,8 +220,6 @@ class _EpubViewerState extends State<EpubViewer> {
 
         return NavigationActionPolicy.ALLOW;
       },
-      onLoadStop: (controller, url) async {},
-      onReceivedError: (controller, request, error) {},
 
       onProgressChanged: (controller, progress) {},
       onUpdateVisitedHistory: (controller, url, androidIsReload) {},

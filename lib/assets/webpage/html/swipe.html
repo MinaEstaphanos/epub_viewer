@@ -169,11 +169,15 @@
 
 
     function getCurrentLocation(){
-      var percent = rendition.location.start.percentage;
+    const renditionLocation = rendition.currentLocation();
+    const startLocation = renditionLocation.start.cfi;
+    const endLocation = renditionLocation.end.cfi;
+
+      var percent = renditionLocation.start.percentage;
       // var percentage = Math.floor(percent * 100);
       var location  = {
-        startCfi: rendition.location.start.cfi,
-        endCfi: rendition.location.end.cfi,
+        startCfi: startLocation,
+        endCfi: endLocation,
         progress: percent
       }
       return location; 
@@ -263,6 +267,9 @@
     }
 
     function setFontSize(fontSize){
+      rendition.themes.fontSize('200%');
+      rendition.reportLocation();
+      return;
       rendition.themes.default({
         p: {
         // "margin": '10px',
@@ -273,8 +280,9 @@
 
     //get current page text
     function getCurrentPageText(){
-      var startCfi = rendition.location.start.cfi
-      var endCfi = rendition.location.end.cfi
+      const renditionLocation = rendition.currentLocation();
+      var startCfi = renditionLocation.start.cfi
+      var endCfi = renditionLocation.end.cfi
       var cfiRange = makeRangeCfi(startCfi, endCfi)
       book.getRange(cfiRange).then(function (range){
         var text = range.toString();
