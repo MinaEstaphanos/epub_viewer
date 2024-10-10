@@ -169,11 +169,15 @@
 
 
     function getCurrentLocation(){
-      var percent = rendition.location.start.percentage;
+    const renditionLocation = rendition.currentLocation();
+    const startLocation = renditionLocation.start.cfi;
+    const endLocation = renditionLocation.end.cfi;
+
+      var percent = renditionLocation.start.percentage;
       // var percentage = Math.floor(percent * 100);
       var location  = {
-        startCfi: rendition.location.start.cfi,
-        endCfi: rendition.location.end.cfi,
+        startCfi: startLocation,
+        endCfi: endLocation,
         progress: percent
       }
       return location; 
@@ -249,14 +253,6 @@
       ).then(results => Promise.resolve([].concat.apply([], results)));
     };
 
-    function setFontSize(fontSize){
-      rendition.themes.default({
-        p: {
-        // "margin": '10px',
-        "font-size":`${fontSize}px`
-      }
-      });
-    }
 
     function setSpread(spread){
       rendition.spread(spread);
@@ -270,19 +266,18 @@
       rendition.manager(manager);
     }
 
-    function setFontSize(fontSize){
-      rendition.themes.default({
-        p: {
-        // "margin": '10px',
-        "font-size":`${fontSize}px`
-        }
-      });
+    function setFontSize(fontSizePercentage){
+    var args = [fontSizePercentage];
+    window.flutter_inappwebview.callHandler('log', ...args);
+      rendition.themes.fontSize('${fontSizePercentage}%');
+      rendition.reportLocation();
     }
 
     //get current page text
     function getCurrentPageText(){
-      var startCfi = rendition.location.start.cfi
-      var endCfi = rendition.location.end.cfi
+      const renditionLocation = rendition.currentLocation();
+      var startCfi = renditionLocation.start.cfi
+      var endCfi = renditionLocation.end.cfi
       var cfiRange = makeRangeCfi(startCfi, endCfi)
       book.getRange(cfiRange).then(function (range){
         var text = range.toString();

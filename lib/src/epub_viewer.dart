@@ -161,6 +161,13 @@ class _EpubViewerState extends State<EpubViewer> {
           widget.epubController.pageTextCompleter
               .complete(EpubTextExtractRes(text: text, cfiRange: cfi));
         });
+
+    webViewController?.addJavaScriptHandler(
+        handlerName: "log",
+        callback: (data) {
+          var msg = data[0].trim();
+          print(msg);
+        });
   }
 
   loadBook() async {
@@ -220,8 +227,6 @@ class _EpubViewerState extends State<EpubViewer> {
 
         return NavigationActionPolicy.ALLOW;
       },
-      onLoadStop: (controller, url) async {},
-      onReceivedError: (controller, request, error) {},
 
       onProgressChanged: (controller, progress) {},
       onUpdateVisitedHistory: (controller, url, androidIsReload) {},
@@ -242,7 +247,7 @@ class _EpubViewerState extends State<EpubViewer> {
 
   @override
   void dispose() {
-    webViewController?.dispose();
+    //webViewController?.dispose();
     super.dispose();
   }
 }

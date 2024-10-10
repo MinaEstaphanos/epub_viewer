@@ -92,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 EpubViewer(
                   epubSource: EpubSource.fromUrl(
-                      'https://github.com/IDPF/epub3-samples/releases/download/20230704/accessible_epub_3.epub'),
+                      'https://firebasestorage.googleapis.com/v0/b/coptic-ebooks.appspot.com/o/books%2FalSla%40%20-%20Bishop%20Macarius%2C%20alanba%20mkaryws.epub?alt=media&token=6c7f0528-db02-4c2a-b054-6b1919eecaa1'),
                   epubController: epubController,
                   displaySettings: EpubDisplaySettings(
                       flow: EpubFlow.paginated,
