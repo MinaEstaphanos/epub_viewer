@@ -1,3 +1,9 @@
+## 1.2.0
+- Added Epub Theme with background and foreground color
+
+## 1.1.6
+- Remove Highlight fix
+
 ## 1.1.5
 - LTR -RTL fixes
 - Sub chapter parsing fixes
