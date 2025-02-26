@@ -155,6 +155,13 @@ class EpubController {
         source: 'setFontSize("$fontSize")');
   }
 
+  updateTheme({required EpubTheme theme}) async {
+    String? backgroundColor = theme.backgroundColor?.toHex();
+    String? foregroundColor = theme.foregroundColor?.toHex();
+    await webViewController?.evaluateJavascript(
+        source: 'updateTheme("$backgroundColor","$foregroundColor")');
+  }
+
   Completer<EpubTextExtractRes> pageTextCompleter =
       Completer<EpubTextExtractRes>();
 
@@ -189,6 +196,16 @@ class EpubController {
     checkEpubLoaded();
     webViewController?.evaluateJavascript(
         source: 'toProgress($progressPercent)');
+  }
+
+  ///Moves to the first page of the epub
+  moveToFistPage() {
+    toProgressPercentage(0.0);
+  }
+
+  ///Moves to the last page of the epub
+  moveToLastPage() {
+    toProgressPercentage(1.0);
   }
 
   checkEpubLoaded() {
