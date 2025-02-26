@@ -165,16 +165,12 @@
         });
 
         //set background and foreground color
-        if (backgroundColor && foregroundColor) {
-          console.log("theme", backgroundColor, foregroundColor)
-          rendition.themes.register("dark", { "body": { "background": backgroundColor, "color": foregroundColor } });
-          rendition.themes.select("dark");
-        }
-
+        updateTheme(backgroundColor,foregroundColor);
     }
 
-    window.flutter_inappwebview.callHandler('readyToLoad');
-
+    window.addEventListener("flutterInAppWebViewPlatformReady", function(event) {
+      window.flutter_inappwebview.callHandler('readyToLoad');
+    });
     
     //move to next page
     function next(){
@@ -198,15 +194,11 @@
 
 
     function getCurrentLocation(){
-    const renditionLocation = rendition.currentLocation();
-    const startLocation = renditionLocation.start.cfi;
-    const endLocation = renditionLocation.end.cfi;
-
-      var percent = renditionLocation.start.percentage;
+      var percent = rendition.location.start.percentage;
       // var percentage = Math.floor(percent * 100);
       var location  = {
-        startCfi: startLocation,
-        endCfi: endLocation,
+        startCfi: rendition.location.start.cfi,
+        endCfi: rendition.location.end.cfi,
         progress: percent
       }
       return location; 
@@ -293,9 +285,8 @@
 
     //get current page text
     function getCurrentPageText(){
-      const renditionLocation = rendition.currentLocation();
-      var startCfi = renditionLocation.start.cfi
-      var endCfi = renditionLocation.end.cfi
+      var startCfi = rendition.location.start.cfi
+      var endCfi = rendition.location.end.cfi
       var cfiRange = makeRangeCfi(startCfi, endCfi)
       book.getRange(cfiRange).then(function (range){
         var text = range.toString();
@@ -312,6 +303,14 @@
         var args = [text,cfiRange]
         window.flutter_inappwebview.callHandler('epubText', ...args);
       })
+    }
+
+    ///update theme
+    function updateTheme(backgroundColor, foregroundColor){
+      if (backgroundColor && foregroundColor) {
+          rendition.themes.register("dark", { "body": { "background": backgroundColor, "color": foregroundColor } });
+          rendition.themes.select("dark");
+        }
     }
 
     const makeRangeCfi = (a, b) => {
