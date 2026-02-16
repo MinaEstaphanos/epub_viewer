@@ -180,10 +180,18 @@ class EpubController {
     );
   }
 
+  ///Adjust font size % in epub viewer
+  setFontSizePercentage({required double fontSize}) async {
+    await webViewController?.evaluateJavascript(
+      source: 'setFontSizePercentage("$fontSize")',
+    );
+  }
+
   updateTheme({required EpubTheme theme}) async {
     String? foregroundColor = theme.foregroundColor?.toHex();
-    String customCss =
-        theme.customCss != null ? Utils.encodeMap(theme.customCss!) : "null";
+    String customCss = theme.customCss != null
+        ? Utils.encodeMap(theme.customCss!)
+        : "null";
     await webViewController?.evaluateJavascript(
       source: 'updateTheme("","$foregroundColor", $customCss)',
     );
