@@ -69,13 +69,13 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {
+            onPressed: () async {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => SearchPage(
-                            epubController: epubController,
-                          )));
+                    builder: (context) =>
+                        SearchPage(epubController: epubController),
+                  ));
             },
           ),
         ],
@@ -91,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Stack(
               children: [
                 EpubViewer(
+                  initialCfi: 'epubcfi(/6/20!/4/2[introduction]/2[c1_h]/1:0)',
                   epubSource: EpubSource.fromUrl(
                       'https://firebasestorage.googleapis.com/v0/b/coptic-ebooks.appspot.com/o/books%2FChristian%20Perfection.epub?alt=media&token=557fa4e7-bf23-4194-a2c0-f12b99ab7188'),
                   epubController: epubController,
@@ -127,13 +128,34 @@ class _MyHomePageState extends State<MyHomePage> {
                       progress = value.progress;
                     });
                   },
-                  onAnnotationClicked: (cfi) {
+                  onAnnotationClicked: (cfi, data) {
                     print("Annotation clicked $cfi");
                   },
                   onTextSelected: (epubTextSelection) {
                     textSelectionCfi = epubTextSelection.selectionCfi;
                     print(textSelectionCfi);
                   },
+                  onLocationLoaded: () {
+                    /// progress will be available after this callback
+                    print('on location loaded');
+                  },
+                  onSelection:
+                      (selectedText, cfiRange, selectionRect, viewRect) {
+                    print("On selection changes");
+                  },
+                  onDeselection: () {
+                    print("on delection");
+                  },
+                  onSelectionChanging: () {
+                    print("on slection chnages");
+                  },
+                  onTouchDown: (x, y) {
+                    print("Touch down at $x , $y");
+                  },
+                  onTouchUp: (x, y) {
+                    print("Touch up at $x , $y");
+                  },
+                  selectAnnotationRange: true,
                 ),
                 Visibility(
                   visible: isLoading,

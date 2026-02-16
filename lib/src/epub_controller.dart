@@ -1,10 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter_epub_viewer/src/epub_metadata.dart';
-import 'package:flutter_epub_viewer/src/helper.dart';
+import 'package:flutter_epub_viewer/src/models/epub_display_settings.dart';
+import 'package:flutter_epub_viewer/src/models/epub_location.dart';
+import 'package:flutter_epub_viewer/src/models/epub_search_result.dart';
+import 'package:flutter_epub_viewer/src/models/epub_text_extract_res.dart';
 import 'package:flutter_epub_viewer/src/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'models/epub_chapter.dart';
+import 'models/epub_theme.dart';
 
 class EpubController {
   InAppWebViewController? webViewController;
@@ -16,13 +21,16 @@ class EpubController {
     webViewController = controller;
   }
 
-  ///Move epub view to specific area using Cfi string or chapter href
+  ///Move epub view to specific area using Cfi string, XPath/XPointer, or chapter href
   display({
-    ///Cfi String of the desired location, also accepts chapter href
+    ///Cfi String, XPath/XPointer string, or chapter href of the desired location
+    ///If the string starts with '/', it will be treated as XPath/XPointer
     required String cfi,
   }) {
     checkEpubLoaded();
-    webViewController?.evaluateJavascript(source: 'toCfi("$cfi")');
+    // Escape quotes in the string
+    var escapedCfi = cfi.replaceAll('"', '\\"');
+    webViewController?.evaluateJavascript(source: 'toCfi("$escapedCfi")');
   }
 
   ///Moves to next page in epub view
@@ -37,17 +45,14 @@ class EpubController {
     webViewController?.evaluateJavascript(source: 'previous()');
   }
 
+  Completer<EpubLocation> currentLocationCompleter = Completer<EpubLocation>();
+
   ///Returns current location of epub viewer
   Future<EpubLocation> getCurrentLocation() async {
     checkEpubLoaded();
-    final result = await webViewController?.evaluateJavascript(
-        source: 'getCurrentLocation()');
-
-    if (result == null) {
-      throw Exception("Epub locations not loaded");
-    }
-
-    return EpubLocation.fromJson(result);
+    currentLocationCompleter = Completer<EpubLocation>();
+    webViewController?.evaluateJavascript(source: 'getCurrentLocation()');
+    return await currentLocationCompleter.future;
   }
 
   ///Returns list of [EpubChapter] from epub,
@@ -57,22 +62,24 @@ class EpubController {
     return _chapters;
   }
 
-  ///Parsing chapters list form epub
   Future<List<EpubChapter>> parseChapters() async {
     if (_chapters.isNotEmpty) return _chapters;
-    checkEpubLoaded();
-    final result =
-        await webViewController!.evaluateJavascript(source: 'getChapters()');
 
-    _chapters = List<EpubChapter>.from(
-        result.map((e) => EpubChapter.fromJson(e.cast<String, dynamic>())));
+    checkEpubLoaded();
+
+    final result = await webViewController!.evaluateJavascript(
+      source: 'getChapters()',
+    );
+
+    _chapters = parseChapterList(result);
     return _chapters;
   }
 
   Future<EpubMetadata> getMetadata() async {
     checkEpubLoaded();
-    final result =
-        await webViewController!.evaluateJavascript(source: 'getBookInfo()');
+    final result = await webViewController!.evaluateJavascript(
+      source: 'getBookInfo()',
+    );
     return EpubMetadata.fromJson(result);
   }
 
@@ -89,7 +96,8 @@ class EpubController {
     if (query.isEmpty) return [];
     checkEpubLoaded();
     await webViewController?.evaluateJavascript(
-        source: 'searchInBook("$query")');
+      source: 'searchInBook("$query")',
+    );
     return await searchResultCompleter.future;
   }
 
@@ -108,7 +116,8 @@ class EpubController {
     var opacityString = opacity.toString();
     checkEpubLoaded();
     webViewController?.evaluateJavascript(
-        source: 'addHighlight("$cfi", "$colorHex", "$opacityString")');
+      source: 'addHighlight("$cfi", "$colorHex", "$opacityString")',
+    );
   }
 
   ///Adds a underline annotation
@@ -141,6 +150,12 @@ class EpubController {
   //   webViewController?.evaluateJavascript(source: 'removeMark("$cfi")');
   // }
 
+  ///Clears any active text selection in the epub viewer
+  clearSelection() {
+    checkEpubLoaded();
+    webViewController?.evaluateJavascript(source: 'clearSelection()');
+  }
+
   ///Set [EpubSpread] value
   setSpread({required EpubSpread spread}) async {
     await webViewController?.evaluateJavascript(source: 'setSpread("$spread")');
@@ -154,24 +169,35 @@ class EpubController {
   ///Set [EpubManager] value
   setManager({required EpubManager manager}) async {
     await webViewController?.evaluateJavascript(
-        source: 'setManager("$manager")');
+      source: 'setManager("$manager")',
+    );
   }
 
   ///Adjust font size in epub viewer
   setFontSize({required double fontSize}) async {
     await webViewController?.evaluateJavascript(
-        source: 'setFontSize("$fontSize")');
+      source: 'setFontSize("$fontSize")',
+    );
   }
 
   updateTheme({required EpubTheme theme}) async {
-    String? backgroundColor = theme.backgroundColor?.toHex();
     String? foregroundColor = theme.foregroundColor?.toHex();
+    String customCss =
+        theme.customCss != null ? Utils.encodeMap(theme.customCss!) : "null";
     await webViewController?.evaluateJavascript(
-        source: 'updateTheme("$backgroundColor","$foregroundColor")');
+      source: 'updateTheme("","$foregroundColor", $customCss)',
+    );
   }
 
-  Completer<EpubTextExtractRes> pageTextCompleter =
-      Completer<EpubTextExtractRes>();
+  Completer<EpubTextExtractRes>? _pageTextCompleter;
+  Completer<Rect?> cfiRectCompleter = Completer<Rect?>();
+
+  /// Safely complete the page text completer
+  void completePageText(EpubTextExtractRes result) {
+    if (_pageTextCompleter != null && !_pageTextCompleter!.isCompleted) {
+      _pageTextCompleter!.complete(result);
+    }
+  }
 
   ///Extract text from a given cfi range,
   Future<EpubTextExtractRes> extractText({
@@ -182,28 +208,61 @@ class EpubController {
     required endCfi,
   }) async {
     checkEpubLoaded();
-    pageTextCompleter = Completer<EpubTextExtractRes>();
+    // Complete previous completer if it exists and isn't completed
+    if (_pageTextCompleter != null && !_pageTextCompleter!.isCompleted) {
+      try {
+        _pageTextCompleter!.completeError('Cancelled by new request');
+      } catch (e) {
+        // Ignore if already completed
+      }
+    }
+    _pageTextCompleter = Completer<EpubTextExtractRes>();
     await webViewController?.evaluateJavascript(
-        source: 'getTextFromCfi("$startCfi","$endCfi")');
-    return pageTextCompleter.future;
+      source: 'getTextFromCfi("$startCfi","$endCfi")',
+    );
+    return _pageTextCompleter!.future;
+  }
+
+  ///Get bounding rectangle for a given CFI range
+  ///Returns WebView-relative coordinates in pixels, or null if rect cannot be determined
+  Future<Rect?> getRectFromCfi(String cfiRange) async {
+    checkEpubLoaded();
+    cfiRectCompleter = Completer<Rect?>();
+    // Escape quotes in the CFI string
+    var escapedCfi = cfiRange.replaceAll('"', '\\"');
+    await webViewController?.evaluateJavascript(
+      source: 'getRectFromCfi("$escapedCfi")',
+    );
+    return cfiRectCompleter.future;
   }
 
   ///Extracts text content from current page
   Future<EpubTextExtractRes> extractCurrentPageText() async {
     checkEpubLoaded();
-    pageTextCompleter = Completer<EpubTextExtractRes>();
+    // Complete previous completer if it exists and isn't completed
+    if (_pageTextCompleter != null && !_pageTextCompleter!.isCompleted) {
+      try {
+        _pageTextCompleter!.completeError('Cancelled by new request');
+      } catch (e) {
+        // Ignore if already completed
+      }
+    }
+    _pageTextCompleter = Completer<EpubTextExtractRes>();
     await webViewController?.evaluateJavascript(source: 'getCurrentPageText()');
-    return pageTextCompleter.future;
+    return _pageTextCompleter!.future;
   }
 
   ///Given a percentage moves to the corresponding page
   ///Progress percentage should be between 0.0 and 1.0
   toProgressPercentage(double progressPercent) {
-    assert(progressPercent >= 0.0 && progressPercent <= 1.0,
-        'Progress percentage must be between 0.0 and 1.0');
+    assert(
+      progressPercent >= 0.0 && progressPercent <= 1.0,
+      'Progress percentage must be between 0.0 and 1.0',
+    );
     checkEpubLoaded();
     webViewController?.evaluateJavascript(
-        source: 'toProgress($progressPercent)');
+      source: 'toProgress($progressPercent)',
+    );
   }
 
   ///Moves to the first page of the epub
@@ -219,22 +278,8 @@ class EpubController {
   checkEpubLoaded() {
     if (webViewController == null) {
       throw Exception(
-          "Epub viewer is not loaded, wait for onEpubLoaded callback");
+        "Epub viewer is not loaded, wait for onEpubLoaded callback",
+      );
     }
-  }
-}
-
-class LocalServerController {
-  final InAppLocalhostServer _localhostServer = InAppLocalhostServer(
-      documentRoot: 'packages/flutter_epub_viewer/lib/assets/webpage');
-
-  Future<void> initServer() async {
-    if (_localhostServer.isRunning()) return;
-    await _localhostServer.start();
-  }
-
-  Future<void> disposeServer() async {
-    if (!_localhostServer.isRunning()) return;
-    await _localhostServer.close();
   }
 }
