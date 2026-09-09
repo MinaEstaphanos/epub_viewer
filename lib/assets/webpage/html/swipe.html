@@ -27,6 +27,12 @@
       body {
         height: 100%;
         margin: 0;
+        /* Clip any leftover body overflow so it can never be scrolled into
+           view. The book scrolls inside epub.js's own container, so hiding
+           html/body overflow does not affect reading — it only stops a stray
+           body scroll from pulling the viewer up and re-exposing a bottom
+           band. */
+        overflow: hidden;
       }
 
       #viewer {
