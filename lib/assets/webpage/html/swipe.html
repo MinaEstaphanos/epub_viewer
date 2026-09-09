@@ -30,6 +30,23 @@
         background: white;
       }
 
+      /*
+        Turn off the browser's native scroll anchoring in the scrolling
+        container. In scrolled (continuous) mode, epub.js does its OWN scroll
+        compensation when it inserts an earlier section above the viewport
+        (see the view manager's counter()/scrollBy). Modern Chromium WebViews
+        ALSO adjust the scroll position for content inserted above — so the
+        two stack, and scrolling up into a not-yet-rendered section (e.g. the
+        Introduction) jumps the view back down. Disabling native anchoring
+        here leaves epub.js's compensation as the only adjustment.
+      */
+      html,
+      body,
+      #viewer,
+      #viewer * {
+        overflow-anchor: none;
+      }
+
       @media only screen and (min-device-width: 320px) and (max-device-width: 667px) {
         .arrow {
           position: inherit;
