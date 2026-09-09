@@ -13,20 +13,26 @@
     <link rel="stylesheet" type="text/css" href="examples.css" />
 
     <style type="text/css">
+      /*
+        Fill the WebView, and keep filling it after it resizes. The reader's
+        WebView starts at the full screen height, then shrinks when the app's
+        bottom bar appears. The old rules centered the viewer in a body whose
+        height was left at that first, larger value, so a dead band was left at
+        the bottom that clipped and covered the text as it scrolled. Pinning
+        html/body/#viewer to height:100% (which tracks the live viewport) and
+        dropping the flex-centering makes the viewer always fill the current
+        height with no gap.
+      */
+      html,
       body {
-        display: flex;
-        -webkit-align-items: center;
-        -webkit-justify-content: center;
+        height: 100%;
+        margin: 0;
       }
 
       #viewer {
         width: 100%;
         height: 100%;
-        /* width: 400px;
-      height: 580px; */
-        /* box-shadow: 0 0 4px #ccc; */
-        /* padding: 10px 10px 0px 10px; */
-        margin: 5px auto;
+        margin: 0 auto;
         background: white;
       }
 
