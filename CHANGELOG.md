@@ -1,4 +1,12 @@
 ## Unreleased (fork)
+- A tap while text is selected now clears the selection. The selection gesture
+  block (`touch-action: pan-y`, applied while a selection is active so that
+  dragging the selection handles does not turn the page) relied on the browser's
+  default tap-to-deselect, which does not reset the `isSelecting`/`lastCfiRange`
+  flags — so `hasActiveSelection()` stayed true and the block could not be
+  released, freezing swipe and scroll with no way out. The tap branch of the
+  touch handlers now calls `clearSelection()` explicitly, which drops the
+  selection, resets the flags and notifies the host to lift the block.
 - Fixed TOC/bookmark/position-restore jumps landing on the previous chapter or
   the wrong page on iOS: WKWebView echoes stale programmatic scroll positions
   and reverted epub.js's compensation for prepended sections. A scroll-echo
