@@ -581,8 +581,14 @@ class _EpubViewerState extends State<EpubViewer> {
         EpubDefaultDirection.ltr.name;
     int fontSize = displaySettings.fontSize;
 
+    // Right-to-left books (Arabic) use the custom swipe handler on every
+    // platform: it maps the gesture to the page progression, so a
+    // left-to-right swipe turns the page. epub.js's own snap helper only
+    // follows the finger in the (ltr) layout, which would make that swipe go
+    // back instead.
     bool useCustomSwipe =
-        Platform.isAndroid && !displaySettings.useSnapAnimationAndroid;
+        (Platform.isAndroid && !displaySettings.useSnapAnimationAndroid) ||
+            direction == EpubDefaultDirection.rtl.name;
 
     String? foregroundColor =
         widget.displaySettings?.theme?.foregroundColor?.toHex();
