@@ -1,3 +1,20 @@
+## Unreleased (fork)
+- Fixed TOC/bookmark/position-restore jumps landing on the previous chapter or
+  the wrong page on iOS: WKWebView echoes stale programmatic scroll positions
+  and reverted epub.js's compensation for prepended sections. A scroll-echo
+  guard in `epubView.js` re-applies the intended position
+  (see `docs/webkit-scroll-echo-guard.md`)
+- `defaultDirection: rtl` now maps swipes to the page progression (a
+  left-to-right swipe turns the page) on iOS and Android; the epub.js layout
+  stays ltr because its rtl layout renders blank pages on WKWebView
+- Fixed a blank band at the bottom of the reader after the WebView shrinks
+  (`html`/`body`/`#viewer` at `height: 100%`, `overflow: hidden`)
+- Disabled native scroll anchoring on the scrolling container in scrolled
+  flow (it stacked with epub.js's own compensation on Chromium)
+- The custom Android swipe handler no longer page-turns in scrolled flow
+- Added `setFontSizePercentage`; the initial font size is applied as a
+  percentage too
+
 ## 1.2.8
 - Fixed `getCurrentLocation` function
 
