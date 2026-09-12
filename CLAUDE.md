@@ -60,13 +60,16 @@ retest.
 
 | Commit | Change |
 |--------|--------|
-| `bdbbaa7` | `setFontSizePercentage(...)` — font size as a percentage, not pixels. |
-| `b47392d` | First paint applies the passed font size as `%` too, so a book opens at the saved size instead of flashing huge. |
-| `72fb8bc` | The custom Android swipe handler only page-turns in **paginated** flow (`flow !== 'scrolled'`); in scrolled flow a sideways drift skipped content. |
-| `5bd487e` | `overflow-anchor: none` on the scrolling container in `swipe.html` — Chromium's scroll anchoring stacked with epub.js's own compensation when scrolling up into a not-yet-rendered section. |
-| `91774b1`, `f6b9425` | `html`/`body`/`#viewer` at `height: 100%`, no flex centering, `overflow: hidden` — a fixed blank band appeared at the bottom when the WebView shrank (e.g. for a bottom bar in the host UI). Never set `#viewer` to a fixed pixel height. |
-| `78aa56b` | **WebKit scroll-echo guard** (`installScrollEchoGuard` in `epubView.js`): iOS WKWebView echoes stale programmatic scroll positions and reverted epub.js's compensation for prepended sections, so TOC/bookmark jumps landed on the previous chapter. Full write-up: [docs/webkit-scroll-echo-guard.md](docs/webkit-scroll-echo-guard.md). |
-| `4900f82` | **Swipe mapping follows the page progression**: `defaultDirection: rtl` enables the custom swipe handler on iOS too and flips left/right → next/prev, while the epub.js layout stays `ltr`. Handing `rtl` to epub.js switched its continuous manager into the rtl layout, which rendered blank pages and ignored swipes on WKWebView. |
+| `0574440` | `setFontSizePercentage(...)` — font size as a percentage, not pixels. |
+| `51bfb4e` | First paint applies the passed font size as `%` too, so a book opens at the saved size instead of flashing huge. |
+| `f4b0712` | The custom Android swipe handler only page-turns in **paginated** flow (`flow !== 'scrolled'`); in scrolled flow a sideways drift skipped content. |
+| `b0a5942` | `overflow-anchor: none` on the scrolling container in `swipe.html` — Chromium's scroll anchoring stacked with epub.js's own compensation when scrolling up into a not-yet-rendered section. |
+| `2a0c94e`, `19538d1` | `html`/`body`/`#viewer` at `height: 100%`, no flex centering, `overflow: hidden` — a fixed blank band appeared at the bottom when the WebView shrank (e.g. for a bottom bar in the host UI). Never set `#viewer` to a fixed pixel height. |
+| `091f75d` | **WebKit scroll-echo guard** (`installScrollEchoGuard` in `epubView.js`): iOS WKWebView echoes stale programmatic scroll positions and reverted epub.js's compensation for prepended sections, so TOC/bookmark jumps landed on the previous chapter. Full write-up: [docs/webkit-scroll-echo-guard.md](docs/webkit-scroll-echo-guard.md). |
+| `4a85c92` | **Swipe mapping follows the page progression**: `defaultDirection: rtl` enables the custom swipe handler on iOS too and flips left/right → next/prev, while the epub.js layout stays `ltr`. Handing `rtl` to epub.js switched its continuous manager into the rtl layout, which rendered blank pages and ignored swipes on WKWebView. |
+| `e3c6829`, `c676cf2` | **A tap or swipe clears an active selection.** Upstream blocks page-turn swipes while text is selected and relies on the selection clearing to lift the block; on Android the native selection layer swallows the tap, so the reader froze. The touch handlers now call `clearSelection()` on a tap and on a horizontal swipe during a selection. |
+| `a3afcd1` | **`EpubTheme.customCss` reaches the page on the initial load.** `loadBook` re-applied the theme at its end without `customCss`; epub.js's `themes.register` replaces the rules and sections take the rules current when they render, so custom rules were silently dropped. |
+| `f75a834`, `3614a0c` | **Selection-handle drags are not swipes.** WKWebView delivers a handle drag to the page as touchmove events (Android's native layer does not), so the swipe-clear above killed a selection being extended after ~2 words on iOS. The guard now skips, and touchend does not block, when the selection changed while the finger was down, the text differs from the previous touch event, or the touch began on a handle. A text snapshot at touchstart alone is not enough: WKWebView updates the DOM selection lazily during a drag. |
 
 Keep this table current when adding a fix.
 
