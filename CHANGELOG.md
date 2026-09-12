@@ -1,4 +1,8 @@
 ## Unreleased (fork)
+- Fixed `EpubTheme.customCss` being ignored on the initial load: `loadBook`
+  re-applied the theme without the custom rules after registering them, and
+  epub.js replaces a theme's rules on re-register, so sections rendered with
+  only the body colour
 - While text is selected, a swipe (and a tap) now clears the selection. Upstream
   blocks page-turn swipes whenever a selection is active — via the JS touch
   handlers, which `preventDefault` horizontal moves (the `touch-action: pan-y`
