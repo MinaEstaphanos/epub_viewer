@@ -1,4 +1,8 @@
 ## Unreleased (fork)
+- Dragging a selection handle no longer clears the selection on iOS. The
+  swipe-clears-selection guard now leaves a gesture alone when the selection is
+  changing under the finger (WKWebView forwards handle drags to the page as
+  touchmove events; Android's native selection layer does not)
 - Fixed `EpubTheme.customCss` being ignored on the initial load: `loadBook`
   re-applied the theme without the custom rules after registering them, and
   epub.js replaces a theme's rules on re-register, so sections rendered with
